@@ -20,7 +20,8 @@
 <button id="myLoc" class="secondary">Use my location</button>
 <div class="row"><label>Radius (miles)<input id="radius" type="number" value="25"></label><label>Since<input id="since" type="datetime-local"></label></div>
 <label>Keywords (optional)<input id="kw" placeholder="e.g. fire, protest"></label>
-<p class="hint">Each run uses about 2 searches of your ~100/day.</p>
+<label class="check"><input id="hideNews" type="checkbox" checked> Hide TV stations and big channels</label>
+<p class="hint">A place name alone is enough; we look up its map spot for free. Leave "Since" blank for the last 48 hours. Each run uses about 2 of your ~100 free searches/day.</p>
 <button id="goLocal" class="go">Find local videos</button>
 <p id="localStatus" class="status"></p><div id="localResults" class="results"></div>
 </section>

@@ -29,5 +29,5 @@ $('goLocal').onclick=async()=>{const st=$('localStatus'),out=$('localResults');o
   if(!YT.key())return status(st,'Add your API key in Settings first.',true);
   const p={place:$('place').value.trim(),lat:num($('lat').value),lng:num($('lng').value),radiusMiles:num($('radius').value)||25,since:$('since').value,keywords:$('kw').value};
   if(!p.place&&!(Number.isFinite(p.lat)&&Number.isFinite(p.lng)))return status(st,'Enter a place name or a location.',true);
-  try{status(st,'Searching…');const v=await Local.findLocalVideos(p);YT.render(out,v);status(st,`${v.length} videos found.`);}catch(e){status(st,e.message,true);}};
+  try{status(st,'Searching…');let v=await Local.findLocalVideos(p);const hide=$('hideNews')&&$('hideNews').checked;const n=v.filter(x=>x.newsy).length;if(hide)v=v.filter(x=>!x.newsy);YT.render(out,v);const g=v.filter(x=>x.geo).length;status(st,`${v.length} videos · ${g} tagged near the spot${hide&&n?` · hid ${n} from news/big channels`:''}. Locals listed first.`);}catch(e){status(st,e.message,true);}};
 })();
