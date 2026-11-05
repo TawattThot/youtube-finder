@@ -3,13 +3,15 @@
 (function(){
 /**
  * @param {Array<{views:number,subs:number|null}>} videos  enriched videos (see api.js enrich)
- * @param {{minViews?:number,maxViews?:number,maxSubs?:number|null}} opts
+ * @param {{minViews?:number,maxViews?:number,maxSubs?:number|null,minSeconds?:number}} opts  minSeconds: drop clips shorter than this (e.g. 61 to skip most Shorts)
  * @returns {Array} videos passing all filters
  */
 function filterVideos(videos,opts){
   const min=Number.isFinite(opts.minViews)?opts.minViews:0, max=Number.isFinite(opts.maxViews)?opts.maxViews:Infinity;
   return videos.filter(v=>{
+    if(v.live==='upcoming') return false; // scheduled premieres/streams always show 0 views
     if(v.views<min||v.views>max) return false;
+    if(Number.isFinite(opts.minSeconds)&&v.seconds!=null&&v.seconds<opts.minSeconds) return false;
     if(opts.maxSubs!=null&&Number.isFinite(opts.maxSubs)){ if(v.subs==null||v.subs>opts.maxSubs) return false; }
     return true;});
 }
