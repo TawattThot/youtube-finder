@@ -13,7 +13,7 @@ const num=v=>v===''?undefined:Number(v);
 $('goLow').onclick=async()=>{const st=$('lowStatus'),out=$('lowResults');out.innerHTML='';
   if(!YT.key())return status(st,'Add your API key in Settings first.',true);
   const q=$('q').value.trim(); if(!q)return status(st,'Type something to search.',true);
-  const opts={minViews:num($('minV').value),maxViews:num($('maxV').value),maxSubs:num($('maxSubs').value)??null};
+  const opts={minViews:num($('minV').value),maxViews:num($('maxV').value),maxSubs:num($('maxSubs').value)??null,minSeconds:$('hideShorts').checked?61:undefined};
   const pages=+$('pages').value; let token, matches=[], scanned=0, used=0;
   try{for(let p=0;p<pages&&matches.length<20;p++){
       status(st,`Scanning page ${p+1} of ${pages}…`);
