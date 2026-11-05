@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YouTube Finder</title><link rel="stylesheet" href="style.css"></head><body>
+<header><h1>YouTube Finder</h1><nav><button class="tab active" data-tab="low">Low-view search</button><button class="tab" data-tab="local">Local eyes</button><button class="tab" data-tab="settings">Settings</button></nav></header>
+<div id="nokey" class="notice hidden">No API key set. Open <b>Settings</b> and paste your free YouTube Data API key.</div>
+<main>
+<section id="low" class="panel">
+<label>Search<input id="q" placeholder="e.g. street food review"></label>
+<div class="row"><label>Min views<input id="minV" type="number" value="200"></label><label>Max views<input id="maxV" type="number" value="2000"></label></div>
+<div class="row"><label>Uploaded<select id="when"><option value="">Any time</option><option value="24h">Last 24 hours</option><option value="week">Last week</option><option value="month">Last month</option><option value="year">Last year</option></select></label>
+<label>Sort<select id="order"><option value="date">Newest</option><option value="relevance">Relevance</option><option value="viewCount">View count</option><option value="rating">Rating</option></select></label></div>
+<div class="row"><label>Max channel subs (optional)<input id="maxSubs" type="number" placeholder="e.g. 10000"></label>
+<label>Pages to scan<select id="pages"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></label></div>
+<p id="est" class="hint"></p>
+<button id="goLow" class="go">Search</button>
+<p id="lowStatus" class="status"></p><div id="lowResults" class="results"></div>
+</section>
+<section id="local" class="panel hidden">
+<label>Place name<input id="place" placeholder="e.g. Kensington, Philadelphia"></label>
+<div class="row"><label>Latitude<input id="lat" type="number" step="any"></label><label>Longitude<input id="lng" type="number" step="any"></label></div>
+<button id="myLoc" class="secondary">Use my location</button>
+<div class="row"><label>Radius (miles)<input id="radius" type="number" value="25"></label><label>Since<input id="since" type="datetime-local"></label></div>
+<label>Keywords (optional)<input id="kw" placeholder="e.g. fire, protest"></label>
+<p class="hint">Each run uses about 2 searches of your ~100/day.</p>
+<button id="goLocal" class="go">Find local videos</button>
+<p id="localStatus" class="status"></p><div id="localResults" class="results"></div>
+</section>
+<section id="settings" class="panel hidden">
+<label>YouTube Data API v3 key<input id="key" type="password" autocomplete="off"></label>
+<div class="row"><button id="saveKey" class="go">Save</button><button id="clearKey" class="secondary">Clear</button></div>
+<p class="hint">Stored only in this browser (localStorage). Never sent anywhere except Google's API. See the README for how to get a free key.</p>
+<p id="keyStatus" class="status"></p>
+</section>
+</main>
+<script src="api.js"></script><script src="filter.js"></script><script src="local.js"></script><script src="app.js"></script>
+</body></html>
