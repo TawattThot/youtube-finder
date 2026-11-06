@@ -8,7 +8,7 @@ const BIG_SUBS=100000;
 // Free OpenStreetMap lookup: turns a place name into lat/lng so the map search works without coordinates. No API quota used.
 async function geocode(place){
   try{const u='https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(place);
-    const j=await (await fetch(u,{headers:{'Accept':'application/json'}})).json();
+    const j=await (await fetch(u,{headers:{'Accept':'application/json','Accept-Language':'en','User-Agent':'YouTubeFinder/1.0 (https://github.com/TawattThot/youtube-finder; personal use)'}})).json();
     if(j&&j[0]) return {lat:+j[0].lat,lng:+j[0].lon,label:j[0].display_name};}catch(e){}
   return null;}
 

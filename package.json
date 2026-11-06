@@ -1,0 +1,17 @@
+{
+  "name": "youtube-finder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Find low-view and local YouTube videos \u2014 web + Android (Capacitor)",
+  "scripts": {
+    "build": "bash scripts/build-www.sh",
+    "sync": "npm run build && npx cap sync android",
+    "open:android": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.0",
+    "@capacitor/browser": "6.0.3",
+    "@capacitor/cli": "6.2.0",
+    "@capacitor/core": "6.2.0"
+  }
+}

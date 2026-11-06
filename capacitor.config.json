@@ -1,0 +1,13 @@
+{
+  "appId": "com.tawattthot.youtubefinder",
+  "appName": "YouTube Finder",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#111111",
+    "webContentsDebuggingEnabled": false
+  }
+}

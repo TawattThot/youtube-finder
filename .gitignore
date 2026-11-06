@@ -1,0 +1,16 @@
+node_modules/
+www/
+.DS_Store
+*.local
+
+# APKs / signing (never commit)
+*.apk
+*.aab
+*.ap_
+*.dex
+*.jks
+*.keystore
+keystore.properties
+secrets/
+.release/
+release/
