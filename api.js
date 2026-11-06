@@ -1,10 +1,10 @@
-// Shared YouTube Data API v3 helpers. window.YT
+// Shared helpers: Google YouTube Data API v3 (optional backup) + card rendering. window.YT
 (function(){
 const BASE='https://www.googleapis.com/youtube/v3/';
 function key(){return localStorage.getItem('ytKey')||'';}
 class ApiError extends Error{constructor(msg,quota){super(msg);this.quota=quota;}}
 async function call(ep,params){
-  const k=key(); if(!k) throw new ApiError('No API key set. Add one in Settings.');
+  const k=key(); if(!k) throw new ApiError('No API key set.');
   const u=new URL(BASE+ep); Object.entries({...params,key:k}).forEach(([a,b])=>{if(b!==undefined&&b!=='')u.searchParams.set(a,b)});
   const r=await fetch(u); const j=await r.json().catch(()=>({}));
   if(!r.ok){const reason=(j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||'';
@@ -14,7 +14,6 @@ async function call(ep,params){
 async function batched(ep,ids,part){const out={};const u=[...new Set(ids)];
   for(let i=0;i<u.length;i+=50){const j=await call(ep,{part,id:u.slice(i,i+50).join(','),maxResults:50});(j.items||[]).forEach(x=>out[x.id]=x);}return out;}
 function dur(iso){const m=/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso||'');return m?((+m[1]||0)*86400+(+m[2]||0)*3600+(+m[3]||0)*60+(+m[4]||0)):null;}
-// Enrich search items into flat video objects.
 async function enrich(searchItems){
   const ids=searchItems.map(s=>s.id&&s.id.videoId).filter(Boolean); if(!ids.length) return [];
   const vids=await batched('videos',ids,'statistics,snippet,contentDetails');
@@ -23,14 +22,35 @@ async function enrich(searchItems){
     id:v.id,title:v.snippet.title,channel:v.snippet.channelTitle,channelId:v.snippet.channelId,
     thumb:(v.snippet.thumbnails.medium||v.snippet.thumbnails.default||{}).url,published:v.snippet.publishedAt,
     views:Number(v.statistics.viewCount||0),seconds:dur(v.contentDetails&&v.contentDetails.duration),live:v.snippet.liveBroadcastContent||'none',subs:st&&!st.hiddenSubscriberCount?Number(st.subscriberCount||0):null};});}
+/** Google-backed low-view scan (same shape as Mirrors.searchLow). */
+async function searchLowGoogle({q,order,when,pages,onProgress}){
+  let token, all=[], scanned=0, used=0;
+  for(let p=0;p<pages;p++){
+    if(onProgress) onProgress(p+1,pages,'Google');
+    const j=await call('search',{part:'snippet',type:'video',maxResults:50,q,order:order||'date',publishedAfter:Filter.publishedAfter(when),pageToken:token});
+    used++;
+    const vids=await enrich(j.items||[]); scanned+=vids.length;
+    const seen=new Set(all.map(m=>m.id)); all.push(...vids.filter(v=>!seen.has(v.id)));
+    token=j.nextPageToken; if(!token) break;
+  }
+  return {videos:all,scanned,pagesUsed:used,source:'Google YouTube API'};
+}
 function ago(iso){const s=(Date.now()-new Date(iso))/1000;const u=[[31536000,'y'],[2592000,'mo'],[86400,'d'],[3600,'h'],[60,'m']];for(const[n,l]of u)if(s>=n)return Math.floor(s/n)+l+' ago';return'just now';}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function openVideo(id){const url='https://www.youtube.com/watch?v='+id;
-  // Under Capacitor, open outside the WebView (YouTube app or system browser).
   try{const B=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;
     if(B&&B.open){B.open({url});return;}}catch(e){}
   window.open(url,'_blank','noopener');}
-function render(el,vids){el.innerHTML=vids.map(v=>`<a class="card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" data-ytid="${v.id}"><img loading="lazy" src="${esc(v.thumb||'')}" alt=""><div class="b"><h3>${esc(v.title)}</h3><div class="m">${esc(v.channel)}<br>${v.views.toLocaleString()} views · ${v.subs==null?'subs hidden':v.subs.toLocaleString()+' subs'} · ${ago(v.published)}</div></div></a>`).join('');
+function render(el,vids){el.innerHTML=vids.map(v=>`<a class="card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" data-ytid="${v.id}"><img loading="lazy" src="${esc(v.thumb||'')}" alt=""><div class="b"><h3>${esc(v.title)}</h3><div class="m">${esc(v.channel)}<br>${v.views.toLocaleString()} views · ${v.subs==null?'subs n/a':v.subs.toLocaleString()+' subs'} · ${ago(v.published)}</div></div></a>`).join('');
   el.querySelectorAll('a.card[data-ytid]').forEach(a=>a.addEventListener('click',e=>{if(!window.Capacitor)return;e.preventDefault();openVideo(a.getAttribute('data-ytid'));}));}
-window.YT={key,call,enrich,render,ApiError,ago};
+
+/** Prefer free mirrors; fall back to Google only if a key is saved. */
+async function searchLow(args){
+  try{return await Mirrors.searchLow(args);}
+  catch(e){
+    if(key()){try{return await searchLowGoogle(args);}catch(e2){throw e2;}}
+    throw new ApiError(e.message||'Free search mirrors are down right now. Try again in a bit, or add a Google API key in Settings as a backup.');
+  }
+}
+window.YT={key,call,enrich,render,ApiError,ago,searchLow,searchLowGoogle};
 })();

@@ -1,42 +1,77 @@
 // local.js — "Local eyes": videos from people near an event, not national TV.
 (function(){
-// Channels whose name looks like a TV station or national outlet get pushed to the bottom.
 const NEWSY=/\b(news|tv|television|abc|cbs|nbc|fox|cnn|msnbc|reuters|associated press|ap archive|bbc|telemundo|univision)\b/i;
-const CALL_SIGN=/\b[KW][A-Z]{2,3}\b/; // US TV/radio call letters, e.g. WPXI, KTLA
+const CALL_SIGN=/\b[KW][A-Z]{2,3}\b/;
 const BIG_SUBS=100000;
 
-// Free OpenStreetMap lookup: turns a place name into lat/lng so the map search works without coordinates. No API quota used.
 async function geocode(place){
   try{const u='https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(place);
-    const j=await (await fetch(u,{headers:{'Accept':'application/json','Accept-Language':'en','User-Agent':'YouTubeFinder/1.0 (https://github.com/TawattThot/youtube-finder; personal use)'}})).json();
+    const j=await (await fetch(u,{headers:{'Accept':'application/json','Accept-Language':'en'}})).json();
     if(j&&j[0]) return {lat:+j[0].lat,lng:+j[0].lon,label:j[0].display_name};}catch(e){}
   return null;}
 
-/**
- * @param {{place?:string,lat?:number,lng?:number,radiusMiles:number,since?:string,keywords?:string}} p
- * @returns {Promise<Array>} videos, best local candidates first. Each gets .geo (true if found by map search) and .newsy.
- */
-async function findLocalVideos(p){
-  // Default window: last 48 hours, since this is for breaking events.
-  const after=p.since?new Date(p.since).toISOString():new Date(Date.now()-48*36e5).toISOString();
+function mark(vids,geoIds){
+  vids.forEach(v=>{v.geo=!!(geoIds&&geoIds.has(v.id));
+    v.newsy=NEWSY.test(v.channel)||CALL_SIGN.test(v.channel)||(v.subs!=null&&v.subs>=BIG_SUBS);});
+  const score=v=>(v.newsy?0:4)+(v.geo?2:0)+(v.subs!=null&&v.subs<10000?1:0);
+  return vids.sort((a,b)=>score(b)-score(a)||new Date(b.published)-new Date(a.published));
+}
+
+async function findLocalGoogle(p,after){
   const kw=(p.keywords||'').trim(); const items=[]; const seen=new Set(); const geoIds=new Set();
   const add=(list,geo)=>list.forEach(i=>{const id=i.id&&i.id.videoId;if(id&&!seen.has(id)){seen.add(id);items.push(i);if(geo)geoIds.add(id);}});
   let lat=p.lat,lng=p.lng;
   if(!(Number.isFinite(lat)&&Number.isFinite(lng))&&p.place){const g=await geocode(p.place);if(g){lat=g.lat;lng=g.lng;}}
-  // 1) Map search: only finds uploads people tagged with a location, but those are the most trustworthy.
   if(Number.isFinite(lat)&&Number.isFinite(lng)){
     const km=Math.min(1000,Math.max(1,(p.radiusMiles||25)*1.609));
     const j=await YT.call('search',{part:'snippet',type:'video',maxResults:50,order:'date',q:kw,
       location:`${lat},${lng}`,locationRadius:km.toFixed(0)+'km',publishedAfter:after});add(j.items||[],true);}
-  // 2) Town-name search, worded the way locals title phone videos.
   if(p.place){const town=p.place.split(',')[0].trim();
     const q=`${town} ${kw}`.replace(/\s+/g,' ').trim();
     const j=await YT.call('search',{part:'snippet',type:'video',maxResults:50,order:'date',q,publishedAfter:after});add(j.items||[],false);}
   const vids=await YT.enrich(items);
-  vids.forEach(v=>{v.geo=geoIds.has(v.id);v.newsy=NEWSY.test(v.channel)||CALL_SIGN.test(v.channel)||(v.subs!=null&&v.subs>=BIG_SUBS);});
-  // Rank: tagged-on-map first, then small/personal channels, then newest. TV/news channels go last.
-  const score=v=>(v.newsy?0:4)+(v.geo?2:0)+(v.subs!=null&&v.subs<10000?1:0);
-  return vids.sort((a,b)=>score(b)-score(a)||new Date(b.published)-new Date(a.published));
+  return {videos:mark(vids,geoIds),source:'Google YouTube API'};
+}
+
+async function findLocalMirrors(p,after){
+  const kw=(p.keywords||'').trim();
+  const town=(p.place||'').split(',')[0].trim();
+  if(!town&&!kw) throw new Error('Enter a place name or keywords.');
+  // Two passes: place+keywords, and place+"footage" (skip duplicate if no place).
+  const queries=[];
+  if(town) queries.push(`${town} ${kw}`.replace(/\s+/g,' ').trim());
+  if(town) queries.push(`${town} ${kw} footage`.replace(/\s+/g,' ').trim());
+  if(!town&&kw) queries.push(kw);
+  const seen=new Set(); let all=[]; let source='';
+  for(const q of queries){
+    try{
+      const {videos,source:src}=await Mirrors.searchText(q,{pages:1});
+      source=source||src;
+      videos.forEach(v=>{if(!seen.has(v.id)){seen.add(v.id);all.push(v);}});
+    }catch(e){/* try next query */}
+  }
+  if(!all.length) throw new Mirrors.MirrorError('Free mirrors returned no local videos. Try again, or add a Google API key for map-radius search.');
+  const cut=Date.parse(after);
+  all=all.filter(v=>v.published&&Date.parse(v.published)>=cut);
+  return {videos:mark(all,null),source};
+}
+
+/**
+ * @param {{place?:string,lat?:number,lng?:number,radiusMiles:number,since?:string,keywords?:string}} p
+ * @returns {Promise<{videos:Array,source:string}>}
+ */
+async function findLocalVideos(p){
+  const after=p.since?new Date(p.since).toISOString():new Date(Date.now()-48*36e5).toISOString();
+  // Map/radius needs Google. Prefer free mirrors otherwise.
+  const wantGeo=Number.isFinite(p.lat)&&Number.isFinite(p.lng);
+  if(YT.key()&&(wantGeo||!p.place)){
+    try{return await findLocalGoogle(p,after);}catch(e){if(!p.place) throw e;}
+  }
+  try{return await findLocalMirrors(p,after);}
+  catch(e){
+    if(YT.key()) return findLocalGoogle(p,after);
+    throw e;
+  }
 }
 window.Local={findLocalVideos,geocode};
 })();

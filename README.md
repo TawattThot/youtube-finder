@@ -1,50 +1,47 @@
 # YouTube Finder
 
-Free app for finding the videos YouTube buries — static web page **and** Android APK (Capacitor).
+Free app for finding the videos YouTube buries — static web page **and** Android APK (Capacitor). **No API key required.**
 
 - **Web (GitHub Pages):** https://tawattthot.github.io/youtube-finder/
 - **Android APK:** [YouTube-Finder-debug.apk](https://github.com/TawattThot/youtube-finder/releases/download/latest/YouTube-Finder-debug.apk) ([release page](https://github.com/TawattThot/youtube-finder/releases/tag/latest)).
 
 ## What it does
-- **Low-view search**: keep only videos in a view range (default 200–2,000), optionally from small channels (max subscribers), by upload window. Sorted newest first by default. "Pages to scan" (1–5, default 2) controls how many searches a run spends. Optional **Hide Shorts**.
-- **Local eyes**: find videos uploaded near a place since an event (geotagged search + place-name search, merged; TV/big channels hidden by default).
+- **Low-view search**: keep only videos in a view range (default 200–2,000), by upload window, newest first by default. “Pages to scan” (1–5). Optional **Hide Shorts**. Optional max-subscribers filter when a Google key is set.
+- **Local eyes**: find videos about a place since an event (place name + keywords + “footage”). TV/big channels hidden by default. Map/radius search is available when a Google key is set.
 
-## Get a free YouTube API key
-1. Go to https://console.cloud.google.com/ and sign in with Google.
-2. Create a project (top bar → New project).
-3. APIs & Services → Library → search **YouTube Data API v3** → Enable.
-4. APIs & Services → Credentials → Create credentials → **API key**.
-5. Edit the key → **API restrictions** → restrict to **YouTube Data API v3**.
-6. **Application restrictions**
-   - For the **website only**: Websites → add `https://tawattthot.github.io/*`.
-   - For the **Android app** (or both): leave Application restrictions as **None** (the key still only works for YouTube Data API v3). Don't paste the key into chat or commit it.
-7. Open the app → **Settings** → paste the key → Save. Stored only in localStorage on that device/browser — never in this repo.
+## How search works (no key)
+The app talks to public **Invidious** and **Piped** instances that allow browser CORS. It tries several mirrors with timeouts and falls over automatically. Results show which mirror (or Google) served them.
+
+Public mirrors come and go. If all of them fail, add an optional Google API key in **Settings** as a backup.
+
+## Optional Google API key (backup)
+1. https://console.cloud.google.com/ → New project.
+2. Enable **YouTube Data API v3**.
+3. Create an **API key**. Restrict it to YouTube Data API v3.
+4. Application restrictions: Websites → `https://tawattthot.github.io/*` (or None for the Android app).
+5. Settings → paste → Save. Stored only in localStorage on that device — never in this repo.
+
+With a key you also get: map-radius Local eyes, channel subscriber filtering, and a fallback when mirrors are down. Free Google quota is 10,000 units/day (~100 searches).
 
 ## Install the Android app
-1. On your phone, download **[YouTube-Finder-debug.apk](https://github.com/TawattThot/youtube-finder/releases/download/latest/YouTube-Finder-debug.apk)**.
-2. Open the APK. If Android blocks it, allow installs from that app (Chrome / Files / etc.) — "unknown sources" for this one install.
-3. Launch **YouTube Finder** → Settings → paste your API key once.
-4. Video cards open in the YouTube app or your browser.
+1. Download **[YouTube-Finder-debug.apk](https://github.com/TawattThot/youtube-finder/releases/download/latest/YouTube-Finder-debug.apk)**.
+2. Allow the one-time install from that source.
+3. Launch **YouTube Finder** — search works immediately. Settings key is optional.
 
-To auto-rebuild the APK on every push to `main`, copy `scripts/android-apk.yml.workflow` to `.github/workflows/android-apk.yml` (needs a GitHub token with the `workflow` scope) and push. Until then, rebuild locally with `npm run sync` + Android Studio / `./gradlew assembleDebug`, then `gh release upload latest … --clobber`.
-
-## Quota
-Free limit is 10,000 units/day. Each search page costs 100 units (~100 searches/day); view/channel lookups cost 1 unit each. Resets at midnight Pacific.
+To auto-rebuild the APK on every push to `main`, copy `scripts/android-apk.yml.workflow` to `.github/workflows/android-apk.yml` and push.
 
 ## Code
-- `api.js` – API calls, enrichment, cards
-- `filter.js` – low-view filtering logic
-- `local.js` – Local eyes (`findLocalVideos` + OpenStreetMap Nominatim geocode)
+- `mirrors.js` – Invidious/Piped free search + failover
+- `api.js` – Google backup + card rendering
+- `filter.js` – low-view filtering
+- `local.js` – Local eyes (mirrors by default; Google for map radius)
 - `app.js` – UI wiring
-- `www/` – copy of the static files for Capacitor (`npm run build`)
-- `android/` – Capacitor Android project (`com.tawattthot.youtubefinder`)
-
-Root `index.html` / JS / CSS stay at the repo root so GitHub Pages keeps working. `scripts/build-www.sh` copies them into `www/` for the native shell.
+- `www/` – Capacitor copy (`npm run build`)
+- `android/` – Capacitor Android project
 
 ## Develop locally
 ```bash
 npm install
-npm run build          # refresh www/
-npx cap sync android   # push www/ into the Android project
-# open in Android Studio, or let CI build the APK
+npm run build
+npx cap sync android
 ```
