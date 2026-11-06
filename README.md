@@ -3,7 +3,7 @@
 Free app for finding the videos YouTube buries — static web page **and** Android APK (Capacitor).
 
 - **Web (GitHub Pages):** https://tawattthot.github.io/youtube-finder/
-- **Android APK:** download the latest debug build from [Releases](https://github.com/TawattThot/youtube-finder/releases/tag/latest) (`YouTube-Finder-debug.apk`).
+- **Android APK:** [YouTube-Finder-debug.apk](https://github.com/TawattThot/youtube-finder/releases/download/latest/YouTube-Finder-debug.apk) ([release page](https://github.com/TawattThot/youtube-finder/releases/tag/latest)).
 
 ## What it does
 - **Low-view search**: keep only videos in a view range (default 200–2,000), optionally from small channels (max subscribers), by upload window. Sorted newest first by default. "Pages to scan" (1–5, default 2) controls how many searches a run spends. Optional **Hide Shorts**.
@@ -21,12 +21,12 @@ Free app for finding the videos YouTube buries — static web page **and** Andro
 7. Open the app → **Settings** → paste the key → Save. Stored only in localStorage on that device/browser — never in this repo.
 
 ## Install the Android app
-1. On your phone, open the [latest release](https://github.com/TawattThot/youtube-finder/releases/tag/latest) and download **YouTube-Finder-debug.apk**.
+1. On your phone, download **[YouTube-Finder-debug.apk](https://github.com/TawattThot/youtube-finder/releases/download/latest/YouTube-Finder-debug.apk)**.
 2. Open the APK. If Android blocks it, allow installs from that app (Chrome / Files / etc.) — "unknown sources" for this one install.
 3. Launch **YouTube Finder** → Settings → paste your API key once.
 4. Video cards open in the YouTube app or your browser.
 
-Every push to `main` rebuilds the APK via GitHub Actions and updates that release.
+To auto-rebuild the APK on every push to `main`, copy `scripts/android-apk.yml.workflow` to `.github/workflows/android-apk.yml` (needs a GitHub token with the `workflow` scope) and push. Until then, rebuild locally with `npm run sync` + Android Studio / `./gradlew assembleDebug`, then `gh release upload latest … --clobber`.
 
 ## Quota
 Free limit is 10,000 units/day. Each search page costs 100 units (~100 searches/day); view/channel lookups cost 1 unit each. Resets at midnight Pacific.
