@@ -1,6 +1,6 @@
 {
   "name": "youtube-finder",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Find low-view and local YouTube videos \u2014 web + Android (Capacitor)",
   "scripts": {

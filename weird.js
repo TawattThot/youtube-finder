@@ -29,6 +29,7 @@ const COUNTRY_LANG={
 };
 
 const defaults={
+  love:false, loveLikesPct:4, loveCommentsPct:0, loveStrict:false,
   first:false, firstN:1, firstVerify:false,
   raw:false,
   fast:false, fastHours:6, eventTime:'',
@@ -46,10 +47,10 @@ function load(){
 function save(s){localStorage.setItem(LS,JSON.stringify(s));}
 
 function anyOn(s){
-  return !!(s.first||s.raw||s.fast||s.dead||s.silent||s.unpolished||s.langMismatch||s.zeroAd);
+  return !!(s.love||s.first||s.raw||s.fast||s.dead||s.silent||s.unpolished||s.langMismatch||s.zeroAd);
 }
 function needsDeepVideo(s){
-  return !!(s.silent||s.zeroAd||s.fast||s.langMismatch||s.raw); // raw benefits from description/tags
+  return !!(s.love||s.silent||s.zeroAd||s.fast||s.langMismatch||s.raw); // love needs like/comment stats; raw benefits from description/tags
 }
 function needsChannel(s){return !!(s.first||s.dead);}
 function needsPlaylist(s){return !!(s.dead||(s.first&&s.firstVerify));}
@@ -255,6 +256,36 @@ async function deepEnrich(videos,settings){
  * @param {object} settings
  * @param {{expectedLang?:string|null, eventTime?:string}} ctx
  */
+
+/** Love ratio: likes/views and/or comments/views as percent. Hidden likes = unknown. */
+function loveCheck(v,s){
+  const minL=Number(s.loveLikesPct); const minC=Number(s.loveCommentsPct);
+  const wantL=Number.isFinite(minL)&&minL>0; const wantC=Number.isFinite(minC)&&minC>0;
+  if(!wantL&&!wantC) return {ok:true,badge:null}; // enabled but no thresholds = pass
+  const views=Number(v.views);
+  if(!Number.isFinite(views)||views<=0){
+    return s.loveStrict?{ok:false}:{ok:true,badge:null}; // unknown without views
+  }
+  // likes: null/undefined = hidden/unknown
+  if(wantL){
+    if(v.likes==null){
+      if(s.loveStrict) return {ok:false};
+      // unknown — do not fail yet; still may check comments
+    }else if((v.likes/views)*100 < minL) return {ok:false};
+  }
+  if(wantC){
+    if(v.comments==null){
+      if(s.loveStrict) return {ok:false};
+    }else if((v.comments/views)*100 < minC) return {ok:false};
+  }
+  // Badge only when we positively met at least one known threshold
+  const liked=wantL&&v.likes!=null&&(v.likes/views)*100>=minL;
+  const commented=wantC&&v.comments!=null&&(v.comments/views)*100>=minC;
+  if(liked||commented) return {ok:true,badge:'loved'};
+  // unknowns kept (non-strict) without badge
+  return {ok:true,badge:null};
+}
+
 function apply(videos,settings,ctx){
   ctx=ctx||{};
   const s=settings||load();
@@ -270,6 +301,12 @@ function apply(videos,settings,ctx){
   for(const v of videos){
     const badges=[];
     let keep=true;
+
+    if(s.love){
+      const r=loveCheck(v,s);
+      if(!r.ok){keep=false;continue;}
+      if(r.badge) badges.push(r.badge);
+    }
 
     if(s.first){
       const vc=v.channelVideoCount;
@@ -359,6 +396,7 @@ function readUI(root){
   const chk=id=>{const el=g(id);return el?!!el.checked:false;};
   const val=id=>{const el=g(id);return el?el.value:'';};
   return{
+    love:chk('love'), loveLikesPct:Number(val('loveLikesPct'))||0, loveCommentsPct:Number(val('loveCommentsPct'))||0, loveStrict:chk('loveStrict'),
     first:chk('first'), firstN:Number(val('firstN'))||1, firstVerify:chk('firstVerify'),
     raw:chk('raw'),
     fast:chk('fast'), fastHours:Number(val('fastHours'))||6, eventTime:val('eventTime'),
@@ -378,6 +416,7 @@ function writeUI(s,root){
       else el.value=v==null?'':v;
     });
   };
+  set('love',s.love); set('loveLikesPct',s.loveLikesPct); set('loveCommentsPct',s.loveCommentsPct); set('loveStrict',s.loveStrict);
   set('first',s.first); set('firstN',s.firstN); set('firstVerify',s.firstVerify);
   set('raw',s.raw);
   set('fast',s.fast); set('fastHours',s.fastHours); set('eventTime',s.eventTime||'');
@@ -407,6 +446,10 @@ function panelHTML(){
   return `<details class="weird">
 <summary>Weird filters <span class="hint">(all off)</span></summary>
 <p class="hint">Optional oddball filters. ~ = best guess. Some need a Google API key (channel/playlist lookups). No extra search.list calls.</p>
+<label class="check"><input type="checkbox" data-w="love"> Love ratio <span class="tip" title="Min likes-per-view % and/or comments-per-view %. Hidden likes = unknown (kept unless Strict). Uses statistics already fetched — no extra quota.">?</span></label>
+<div class="row weird-indent"><label>Min likes/view %<input type="number" data-w="loveLikesPct" value="4" min="0" max="100" step="0.1"></label>
+<label>Min comments/view %<input type="number" data-w="loveCommentsPct" value="0" min="0" max="100" step="0.01"></label></div>
+<label class="check weird-indent"><input type="checkbox" data-w="loveStrict"> Strict (drop unknown/hidden likes)</label>
 <label class="check"><input type="checkbox" data-w="first"> First upload <span class="tip" title="Channel has <= N videos (cheap). Optional verify via uploads playlist when N<=3.">?</span></label>
 <div class="row weird-indent"><label>Max videos on channel<input type="number" data-w="firstN" value="1" min="1" max="20"></label>
 <label class="check"><input type="checkbox" data-w="firstVerify"> Verify oldest (<=3 vids, +1 quota/channel)</label></div>
@@ -427,6 +470,6 @@ window.Weird={
   load,save,anyOn,needsDeepVideo,needsChannel,needsPlaylist,
   deepEnrich,apply,readUI,writeUI,bindUI,panelHTML,countryToLang,
   // exposed for tests
-  _test:{isRaw,rawScore,isAllLower,hasClickbait,detectLangFromTitle,RAW_PATTERNS,AMBIENT,SPONSOR,defaults,chanCache,playlistOldestCache}
+  _test:{isRaw,rawScore,isAllLower,hasClickbait,detectLangFromTitle,loveCheck,RAW_PATTERNS,AMBIENT,SPONSOR,defaults,chanCache,playlistOldestCache}
 };
 })();

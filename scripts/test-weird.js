@@ -89,6 +89,23 @@ const langVids=[
 const lm=Weird.apply(langVids.map(v=>({...v})),s,{expectedLang:'en'});
 assert(lm.some(v=>v.id==='es')&&lm.every(v=>v.id!=='en'), 'lang mismatch keeps non-en');
 
+
+assert(T.loveCheck({views:1000,likes:50,comments:2},{loveLikesPct:4,loveCommentsPct:0,loveStrict:false}).badge==='loved', 'love ratio met');
+assert(!T.loveCheck({views:1000,likes:10,comments:0},{loveLikesPct:4,loveCommentsPct:0,loveStrict:false}).ok, 'love ratio too low');
+assert(T.loveCheck({views:1000,likes:null,comments:0},{loveLikesPct:4,loveCommentsPct:0,loveStrict:false}).ok, 'hidden likes kept non-strict');
+assert(!T.loveCheck({views:1000,likes:null,comments:0},{loveLikesPct:4,loveCommentsPct:0,loveStrict:true}).ok, 'hidden likes dropped strict');
+assert(T.loveCheck({views:1000,likes:10,comments:5},{loveLikesPct:0,loveCommentsPct:0.4,loveStrict:false}).badge==='loved', 'comments ratio met');
+s=Object.assign({},T.defaults,{love:true,loveLikesPct:4,loveCommentsPct:0,loveStrict:false});
+const loveVids=[
+  {id:'hot',title:'x',views:1000,likes:80,comments:1},
+  {id:'meh',title:'x',views:1000,likes:5,comments:0},
+  {id:'hid',title:'x',views:1000,likes:null,comments:0},
+];
+const lr=Weird.apply(loveVids.map(v=>({...v})),s);
+assert(lr.some(v=>v.id==='hot'&&v.badges.includes('loved')), 'love keeps hot with badge');
+assert(lr.every(v=>v.id!=='meh'), 'love drops low ratio');
+assert(lr.some(v=>v.id==='hid'), 'love keeps hidden likes when not strict');
+
 // filters off = passthrough with empty badges
 const passthrough=Weird.apply(vids.map(v=>({...v})),T.defaults);
 assert(passthrough.length===vids.length, 'all filters off keeps all');
