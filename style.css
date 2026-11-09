@@ -9,3 +9,10 @@ button.secondary{padding:10px 14px;background:#333;color:#eee;border:0;border-ra
 .status.err{color:#f88}.results{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 .card{background:#1d1d1d;border-radius:10px;overflow:hidden;text-decoration:none;color:#eee}.card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .card .b{padding:8px}.card h3{font-size:.95rem;margin:0 0 4px}.card .m{font-size:.8rem;color:#999}
+.foot{margin:20px auto 24px;padding:14px 12px 8px;max-width:800px;text-align:center;border-top:1px solid #333}
+.foot a.ext,.key-link{color:#f66;font-size:.85rem;text-decoration:underline}
+.key-link{margin-left:6px;font-weight:normal}
+.howto{margin:10px 0;font-size:.8rem;color:#aaa;text-align:left;max-width:800px;margin-left:auto;margin-right:auto}
+.howto summary{cursor:pointer;color:#ccc;padding:4px 0}
+.howto ol{margin:8px 0 0;padding-left:1.25em}
+.howto li{margin:5px 0;line-height:1.35}

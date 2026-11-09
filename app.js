@@ -6,6 +6,7 @@ function keyUI(){$('key').value=YT.key();$('keyStatus').textContent=YT.key()?'Ba
 $('saveKey').onclick=()=>{localStorage.setItem('ytKey',$('key').value.trim());keyUI();};
 $('clearKey').onclick=()=>{localStorage.removeItem('ytKey');keyUI();};
 keyUI();
+document.querySelectorAll('a.ext').forEach(a=>a.addEventListener('click',e=>{if(!window.Capacitor)return;e.preventDefault();YT.openUrl(a.href);}));
 function est(){const n=+$('pages').value;$('est').textContent=`Free by default (public Invidious/Piped mirrors). Scans up to ${n} page${n>1?'s':''}, stops early at 20 matches. Google key in Settings is an optional backup.`;}
 $('pages').onchange=est;est();
 function status(el,msg,err){el.textContent=msg;el.classList.toggle('err',!!err);}

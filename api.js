@@ -37,10 +37,10 @@ async function searchLowGoogle({q,order,when,pages,onProgress}){
 }
 function ago(iso){const s=(Date.now()-new Date(iso))/1000;const u=[[31536000,'y'],[2592000,'mo'],[86400,'d'],[3600,'h'],[60,'m']];for(const[n,l]of u)if(s>=n)return Math.floor(s/n)+l+' ago';return'just now';}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function openVideo(id){const url='https://www.youtube.com/watch?v='+id;
-  try{const B=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;
-    if(B&&B.open){B.open({url});return;}}catch(e){}
+function openUrl(url){try{const B=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;
+  if(B&&B.open){B.open({url});return;}}catch(e){}
   window.open(url,'_blank','noopener');}
+function openVideo(id){openUrl('https://www.youtube.com/watch?v='+id);}
 function render(el,vids){el.innerHTML=vids.map(v=>`<a class="card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" data-ytid="${v.id}"><img loading="lazy" src="${esc(v.thumb||'')}" alt=""><div class="b"><h3>${esc(v.title)}</h3><div class="m">${esc(v.channel)}<br>${v.views.toLocaleString()} views · ${v.subs==null?'subs n/a':v.subs.toLocaleString()+' subs'} · ${ago(v.published)}</div></div></a>`).join('');
   el.querySelectorAll('a.card[data-ytid]').forEach(a=>a.addEventListener('click',e=>{if(!window.Capacitor)return;e.preventDefault();openVideo(a.getAttribute('data-ytid'));}));}
 
@@ -52,5 +52,5 @@ async function searchLow(args){
     throw new ApiError(e.message||'Free search mirrors are down right now. Try again in a bit, or add a Google API key in Settings as a backup.');
   }
 }
-window.YT={key,call,enrich,render,ApiError,ago,searchLow,searchLowGoogle};
+window.YT={key,call,enrich,render,ApiError,ago,searchLow,searchLowGoogle,openUrl};
 })();

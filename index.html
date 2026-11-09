@@ -27,11 +27,39 @@
 </section>
 <section id="settings" class="panel hidden">
 <p class="hint">No key needed. The app uses free public Invidious/Piped mirrors. A Google API key is only an optional backup (and unlocks map-radius Local eyes + max-subs filter).</p>
-<label>Optional backup: YouTube Data API v3 key<input id="key" type="password" autocomplete="off"></label>
+<label>Optional backup: YouTube Data API v3 key <a class="ext key-link" href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">Get a free key</a><input id="key" type="password" autocomplete="off"></label>
 <div class="row"><button id="saveKey" class="go">Save</button><button id="clearKey" class="secondary">Clear</button></div>
-<p class="hint">Stored only on this device (localStorage). Never committed to the repo. See the README if you want one.</p>
+<details class="howto">
+<summary>How to get a free API key</summary>
+<ol>
+<li>Open the link and sign in with any Google account.</li>
+<li>Create a project if asked (any name).</li>
+<li>Click Enable on YouTube Data API v3.</li>
+<li>Go to APIs &amp; Services &gt; Credentials &gt; Create credentials &gt; API key.</li>
+<li>Edit the key: API restrictions = Restrict key &gt; YouTube Data API v3; Application restrictions = None. Save.</li>
+<li>Copy the key and paste it into this app's Settings.</li>
+</ol>
+<p class="hint">Free · about 100 searches/day · no card needed.</p>
+</details>
+<p class="hint">Stored only on this device (localStorage). Never committed to the repo.</p>
 <p id="keyStatus" class="status"></p>
 </section>
 </main>
+<footer class="foot">
+<a class="ext" href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">Get a free YouTube API key</a>
+<p class="hint">Create credentials &gt; API key, restrict to YouTube Data API v3, Application restrictions: None, then paste it in Settings.</p>
+<details class="howto">
+<summary>How to get a free API key</summary>
+<ol>
+<li>Open the link and sign in with any Google account.</li>
+<li>Create a project if asked (any name).</li>
+<li>Click Enable on YouTube Data API v3.</li>
+<li>Go to APIs &amp; Services &gt; Credentials &gt; Create credentials &gt; API key.</li>
+<li>Edit the key: API restrictions = Restrict key &gt; YouTube Data API v3; Application restrictions = None. Save.</li>
+<li>Copy the key and paste it into this app's Settings.</li>
+</ol>
+<p class="hint">Free · about 100 searches/day · no card needed.</p>
+</details>
+</footer>
 <script src="mirrors.js"></script><script src="api.js"></script><script src="filter.js"></script><script src="local.js"></script><script src="app.js"></script>
 </body></html>
