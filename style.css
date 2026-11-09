@@ -17,3 +17,5 @@ button.secondary{padding:10px 14px;background:#333;color:#eee;border:0;border-ra
 .howto ol{margin:8px 0 0;padding-left:1.25em}
 .howto li{margin:5px 0;line-height:1.35}
 .howto-img{display:block;width:100%;max-width:420px;height:auto;margin:10px auto;border-radius:12px}
+.howto-imgs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
+.howto-imgs .howto-img{margin:0}
