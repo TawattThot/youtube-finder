@@ -5,9 +5,10 @@ const CALL_SIGN=/\b[KW][A-Z]{2,3}\b/;
 const BIG_SUBS=100000;
 
 async function geocode(place){
-  try{const u='https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(place);
+  try{const u='https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q='+encodeURIComponent(place);
     const j=await (await fetch(u,{headers:{'Accept':'application/json','Accept-Language':'en'}})).json();
-    if(j&&j[0]) return {lat:+j[0].lat,lng:+j[0].lon,label:j[0].display_name};}catch(e){}
+    if(j&&j[0]){const a=j[0].address||{};const cc=a.country_code||null;
+      return {lat:+j[0].lat,lng:+j[0].lon,label:j[0].display_name,countryCode:cc?String(cc).toUpperCase():null};}}catch(e){}
   return null;}
 
 function mark(vids,geoIds){

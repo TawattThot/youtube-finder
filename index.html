@@ -11,6 +11,7 @@
 <label>Pages to scan<select id="pages"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></label></div>
 <label class="check"><input id="hideShorts" type="checkbox"> Hide Shorts (under 1 minute)</label>
 <p id="est" class="hint"></p>
+<div id="weirdLow"></div>
 <button id="goLow" class="go">Search</button>
 <p id="lowStatus" class="status"></p><div id="lowResults" class="results"></div>
 </section>
@@ -22,6 +23,7 @@
 <label>Keywords (optional)<input id="kw" placeholder="e.g. fire, protest"></label>
 <label class="check"><input id="hideNews" type="checkbox" checked> Hide TV stations and big channels</label>
 <p class="hint">Free by default: searches the place name + keywords (and “footage”), newest first. Leave “Since” blank for the last 48 hours. Map/radius search needs an optional Google API key.</p>
+<div id="weirdLocal"></div>
 <button id="goLocal" class="go">Find local videos</button>
 <p id="localStatus" class="status"></p><div id="localResults" class="results"></div>
 </section>
@@ -65,5 +67,5 @@
 <p class="hint">Free · about 100 searches/day · no card needed.</p>
 </details>
 </footer>
-<script src="mirrors.js"></script><script src="api.js"></script><script src="filter.js"></script><script src="local.js"></script><script src="app.js"></script>
+<script src="mirrors.js"></script><script src="api.js"></script><script src="filter.js"></script><script src="weird.js"></script><script src="local.js"></script><script src="app.js"></script>
 </body></html>

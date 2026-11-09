@@ -8,6 +8,7 @@ Free app for finding the videos YouTube buries — static web page **and** Andro
 ## What it does
 - **Low-view search**: keep only videos in a view range (default 200–2,000), by upload window, newest first by default. “Pages to scan” (1–5). Optional **Hide Shorts**. Optional max-subscribers filter when a Google key is set.
 - **Local eyes**: find videos about a place since an event (place name + keywords + “footage”). TV/big channels hidden by default. Map/radius search is available when a Google key is set.
+- **Weird filters** (all off by default, both tabs): optional oddball filters — first upload, raw footage, fast upload after an event, dead channel, ~silent/no talking, unpolished titles, ~language≠place, zero-ad. Matching cards get small badges. Filters that need channel/playlist or deep video parts use a Google key when set (batched; no extra `search.list`). ~ = best guess.
 
 ## How search works (no key)
 The app talks to public **Invidious** and **Piped** instances that allow browser CORS. It tries several mirrors with timeouts and falls over automatically. Results show which mirror (or Google) served them.
@@ -34,6 +35,7 @@ To auto-rebuild the APK on every push to `main`, copy `scripts/android-apk.yml.w
 - `mirrors.js` – Invidious/Piped free search + failover
 - `api.js` – Google backup + card rendering
 - `filter.js` – low-view filtering
+- `weird.js` – optional Weird filters + badges
 - `local.js` – Local eyes (mirrors by default; Google for map radius)
 - `app.js` – UI wiring
 - `www/` – Capacitor copy (`npm run build`)

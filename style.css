@@ -19,3 +19,9 @@ button.secondary{padding:10px 14px;background:#333;color:#eee;border:0;border-ra
 .howto-img{display:block;width:100%;max-width:420px;height:auto;margin:10px auto;border-radius:12px}
 .howto-imgs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
 .howto-imgs .howto-img{margin:0}
+.weird{margin:12px 0;padding:8px 10px;background:#1a1a1a;border:1px solid #333;border-radius:10px;font-size:.85rem}
+.weird summary{cursor:pointer;color:#ddd;font-weight:600}
+.weird .tip{display:inline-block;width:1.1em;height:1.1em;line-height:1.1em;text-align:center;border-radius:50%;background:#333;color:#aaa;font-size:.7rem;margin-left:4px;cursor:help}
+.weird-indent{margin-left:8px;opacity:.95}
+.badges{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.badge{font-size:.7rem;background:#333;color:#fc8;border:1px solid #543;border-radius:999px;padding:1px 7px}

@@ -41,7 +41,8 @@ function openUrl(url){try{const B=window.Capacitor&&Capacitor.Plugins&&Capacitor
   if(B&&B.open){B.open({url});return;}}catch(e){}
   window.open(url,'_blank','noopener');}
 function openVideo(id){openUrl('https://www.youtube.com/watch?v='+id);}
-function render(el,vids){el.innerHTML=vids.map(v=>`<a class="card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" data-ytid="${v.id}"><img loading="lazy" src="${esc(v.thumb||'')}" alt=""><div class="b"><h3>${esc(v.title)}</h3><div class="m">${esc(v.channel)}<br>${v.views.toLocaleString()} views · ${v.subs==null?'subs n/a':v.subs.toLocaleString()+' subs'} · ${ago(v.published)}</div></div></a>`).join('');
+function badgesHTML(v){const b=v.badges||[];if(!b.length)return'';return `<div class="badges">${b.map(x=>`<span class="badge">${esc(x)}</span>`).join('')}</div>`;}
+function render(el,vids){el.innerHTML=vids.map(v=>`<a class="card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" data-ytid="${v.id}"><img loading="lazy" src="${esc(v.thumb||'')}" alt=""><div class="b"><h3>${esc(v.title)}</h3>${badgesHTML(v)}<div class="m">${esc(v.channel)}<br>${v.views.toLocaleString()} views · ${v.subs==null?'subs n/a':v.subs.toLocaleString()+' subs'} · ${ago(v.published)}</div></div></a>`).join('');
   el.querySelectorAll('a.card[data-ytid]').forEach(a=>a.addEventListener('click',e=>{if(!window.Capacitor)return;e.preventDefault();openVideo(a.getAttribute('data-ytid'));}));}
 
 /** Prefer free mirrors; fall back to Google only if a key is saved. */
